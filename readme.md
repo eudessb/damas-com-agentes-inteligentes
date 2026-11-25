@@ -6,69 +6,28 @@ Agente de IA que joga **Damas (regras brasileiras)** contra um humano ou contra 
 
 | Algoritmo | Ideia | Pontos fortes | Limitações |
 |---|---|---|---|
+| **Aleatório** | Escolhe um lance aleatório dentre os possíveis |
 | **Busca Gulosa** | Escolhe o lance cujo estado resultante tem a melhor heurística (horizonte de 1 lance) | Instantâneo | Míope: não antecipa a resposta do adversário |
 | **Minimax + poda α-β** | Busca adversarial de profundidade fixa, com ordenação de lances | Ótimo dentro do horizonte; rápido com a poda | Qualidade depende da heurística e da profundidade |
 | **MCTS (UCT)** | Constrói uma árvore por simulações aleatórias (rollouts) | Não exige heurística refinada; "anytime" | Rollouts aleatórios são ruidosos; precisa de muitas iterações |
 
-> **Restrição de implementação:** todo o código usa **funções** (sem classes e objetos). O estado do jogo é uma tupla imutável e o estado da interface fica em um dicionário.
-
----
-
 ## Como executar
 
 Requer **Python 3.9+**. Não há dependências externas (apenas biblioteca padrão).
-A interface gráfica usa `tkinter` (em Linux: `sudo apt install python3-tk`).
-
 ```bash
-# Interface gráfica (escolha algoritmos/parâmetros de cada lado na própria janela)
+# Rodar no terminal
 python main.py
-
-# Terminal: humano (brancas) contra Minimax (pretas)
-python main.py --cli --brancas humano --pretas minimax:profundidade=5
-
-# Terminal: IA contra IA
-python main.py --cli --brancas mcts:iteracoes=1000 --pretas guloso
-
-# Torneio (alterna as cores) entre dois agentes, com métricas
-python main.py --torneio minimax:profundidade=4 mcts:iteracoes=800 --partidas 4 --semente 5
-
-# Testes unitários
-python -m unittest discover -s tests -v
 ```
-
-Formato dos agentes na linha de comando: `nome[:param=valor,param=valor]`
-
-* `guloso`
-* `minimax:profundidade=6,usar_poda=true,ordenar=true`
-* `mcts:iteracoes=2000,c=1.4,limite_rollout=60,tempo_limite=1.5`
-* `humano` (apenas no modo `--cli`)
-
-No terminal, o lance humano é digitado em notação algébrica: `c3-d4` (movimento) ou `c3xe5` / `c3xe5xg7` (captura).
-
----
-
 ## Estrutura do repositório
 
 ```
-damas_ia/
-├── main.py              # ponto de entrada (GUI, terminal e torneio)
-├── README.md
-├── requirements.txt     # (vazio: só biblioteca padrão)
-├── src/
-│   ├── ambiente.py      # regras do jogo, geração de lances, transição, término
-│   ├── avaliacao.py     # função heurística de avaliação
-│   ├── agentes.py       # guloso, minimax α-β, MCTS e despachante
-│   ├── metricas.py      # contadores e resumos de desempenho
-│   ├── arena.py         # partidas no terminal e torneios
-│   └── interface.py     # interface gráfica (Tkinter)
-└── tests/
-    └── test_ambiente.py # testes das regras e dos agentes
+frontend/
+backend/
+agents/
+benchmark/
+LICENSE
+readme.md
 ```
-
-A separação segue a recomendação do enunciado: **ambiente** (`ambiente.py`), **agentes** (`agentes.py`, `avaliacao.py`), **métricas** (`metricas.py`) e **apresentação** (`interface.py`, `arena.py`). O ambiente não conhece os agentes e vice-versa: cada agente recebe um `estado` e devolve `(movimento, info)`.
-
----
-
 ## Modelagem PEAS e arquitetura do agente
 
 | | |
@@ -137,25 +96,6 @@ Cada decisão registra: **nós expandidos**, **podas α-β**, **tempo**, **valor
 
 > Amostras pequenas e posições dependentes de sorteios: servem como indicação, não como conclusão estatística. Para resultados mais firmes, use mais partidas e várias sementes (`--partidas`, `--semente`).
 
----
-
-## Limitações e dificuldades
-
-* A **heurística é simples**; não considera estruturas táticas (trocas forçadas, formações de defesa) nem fases de final de jogo.
-* O **minimax tem horizonte fixo** (efeito horizonte) e valores de lances podados são apenas limites.
-* O **MCTS usa rollouts totalmente aleatórios**, que são ruidosos em jogos táticos como as Damas, e é bem mais lento em Python.
-* Não há **tabela de transposição**, aprofundamento iterativo nem livro de aberturas.
-* A regra de empate por repetição de posição não foi implementada (há o limite de 20 lances sem progresso e um teto de 300 meios-lances por partida).
-* Em Python puro, profundidades acima de ~7 ficam lentas.
-
-## Possíveis melhorias
-
-* Aprofundamento iterativo com limite de tempo e tabela de transposição (hash de estados).
-* Heurística aprendida (por exemplo, pesos ajustados por jogos de autoconfronto) ou rollouts guiados por heurística no MCTS.
-* Aprendizado por reforço (self-play) e comparação com os métodos clássicos.
-* Livro de aberturas e base de finais.
-
----
 
 ## Referências
 
