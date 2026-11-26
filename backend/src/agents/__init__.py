@@ -1,4 +1,3 @@
-
 from game.board import Board
 from game.rules import get_simple_moves
 
