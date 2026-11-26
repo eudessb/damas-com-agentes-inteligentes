@@ -13,10 +13,11 @@ Agente de IA que joga **Damas (regras brasileiras)** contra um humano ou contra 
 
 ## Como executar
 
-Requer **Python 3.9+**. Não há dependências externas (apenas biblioteca padrão).
+Requer **Python 3.9+** e pytest.
 ```bash
 # Rodar no terminal
-python main.py
+python3 -m pytest -v #na pasta backend/
+python3 -m src.game.game #executar na pasta backend/
 ```
 ## Estrutura do repositório
 
