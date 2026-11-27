@@ -196,3 +196,39 @@ def get_multiple_capture_moves(board, row, col, player):
     explore(row, col, [])
 
     return sequences
+
+
+
+def get_legal_moves(board, player):
+    capture_sequences = []
+
+    # Procura capturas para todas as peças do jogador
+    for row in range(Board.SIZE):
+        for col in range(Board.SIZE):
+            piece = board.get_piece(row, col)
+
+            if piece != player:
+                continue
+
+            sequences = get_multiple_capture_moves(
+                board, row, col, player
+            )
+
+            capture_sequences.extend(sequences)
+
+    # Se existem capturas, elas são obrigatórias
+    if capture_sequences:
+        max_captures = max(
+            len(sequence) for sequence in capture_sequences
+        )
+
+        # Retorna somente as sequências que capturam
+        # o maior número de peças
+        return [
+            sequence
+            for sequence in capture_sequences
+            if len(sequence) == max_captures
+        ]
+
+    # Se não existem capturas, permite movimentos simples
+    return get_simple_moves(board, player)

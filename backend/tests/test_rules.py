@@ -2,7 +2,8 @@ from src.game.board import Board
 from src.game.rules import (
     get_simple_moves,
     get_capture_moves,
-    get_multiple_capture_moves
+    get_multiple_capture_moves,
+    get_legal_moves
 )
 
 def test_initial_white_moves():
@@ -127,3 +128,59 @@ def test_multiple_capture_sequence():
     assert board.get_piece(5, 0) == Board.WHITE
     assert board.get_piece(4, 1) == Board.BLACK
     assert board.get_piece(2, 3) == Board.BLACK
+
+def test_capture_is_mandatory():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(5, 0, Board.WHITE)
+    board.set_piece(4, 1, Board.BLACK)
+
+    # Outra peça branca possui movimento simples
+    board.set_piece(5, 4, Board.WHITE)
+
+    moves = get_legal_moves(board, Board.WHITE)
+
+    assert len(moves) == 1
+    assert len(moves[0]) == 1
+    assert moves[0][0]["capture"] == (4, 1)
+
+def test_must_choose_maximum_capture():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    # Primeira peça branca consegue capturar uma peça
+    board.set_piece(5, 0, Board.WHITE)
+    board.set_piece(4, 1, Board.BLACK)
+
+    # Segunda peça branca consegue capturar duas peças
+    board.set_piece(5, 4, Board.WHITE)
+    board.set_piece(4, 5, Board.BLACK)
+    board.set_piece(2, 5, Board.BLACK)
+
+    moves = get_legal_moves(board, Board.WHITE)
+
+    assert len(moves) == 1
+    assert len(moves[0]) == 2
+
+def test_simple_moves_when_no_capture_exists():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(5, 2, Board.WHITE)
+
+    moves = get_legal_moves(board, Board.WHITE)
+
+    assert len(moves) == 2
+
+    for move in moves:
+        assert "capture" not in move
