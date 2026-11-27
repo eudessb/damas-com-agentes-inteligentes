@@ -17,7 +17,8 @@ Requer **Python 3.9+** e pytest.
 ```bash
 # Rodar no terminal
 python3 -m pytest -v #executar na pasta backend/
-python3 test_match.py #executar na pasta backend/
+python3 play_match.py #executar na pasta backend/
+python3 play_match_random.py #executar na pasta backed para jogar contra o agente random
 ```
 ## Estrutura do repositório
 
