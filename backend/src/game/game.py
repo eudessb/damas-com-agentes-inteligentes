@@ -1,15 +1,14 @@
+
 from .board import Board
-from .rules import get_simple_moves
+from .rules import get_legal_moves
+
 
 def apply_move(board, move):
     """
     Executa um movimento simples ou uma sequência de capturas.
     """
 
-    if isinstance(move, dict):
-        moves = [move]
-    else:
-        moves = move
+    moves = [move] if isinstance(move, dict) else move
 
     if not moves:
         raise ValueError("A sequência de movimentos está vazia.")
@@ -32,7 +31,7 @@ def apply_move(board, move):
 
         board.set_piece(to_row, to_col, piece)
 
-    # Verifica promoção após a jogada completa
+    # Promoção ao final da jogada completa
     final_row, final_col = moves[-1]["to"]
 
     if piece == Board.WHITE and final_row == 0:
@@ -43,22 +42,147 @@ def apply_move(board, move):
 
     return board
 
-def main():
-    board = Board()
 
-    print("Tabuleiro inicial:")
-    board.print_board()
+class CheckersGame:
+    def __init__(self):
+        self.board = Board()
+        self.current_player = Board.WHITE
 
-    # Movimentos das peças brancas
-    moves = get_simple_moves(board, Board.WHITE)
+        self.winner = None
+        self.status = "ongoing"
+        self.draw_reason = None
 
-    print("\nMovimentos possíveis das brancas:")
+        self.history = []
 
-    for move in moves:
-        print(f'{move["from"]} -> {move["to"]}')
+        # Guarda quantas vezes cada posição já apareceu
+        self.position_counts = {}
+        self._register_position()
 
-    print(f"\nTotal de movimentos: {len(moves)}")
+        self._check_game_over()
 
+    def get_legal_moves(self):
+        if self.status != "ongoing":
+            return []
 
-if __name__ == "__main__":
-    main()
+        return get_legal_moves(self.board, self.current_player)
+
+    def play_move(self, move):
+        """
+        Valida e executa uma jogada do jogador atual.
+        """
+
+        if self.status != "ongoing":
+            raise ValueError("A partida já terminou.")
+
+        legal_moves = self.get_legal_moves()
+
+        if move not in legal_moves:
+            raise ValueError("Movimento inválido.")
+
+        player = self.current_player
+
+        # Registra a jogada no histórico
+        self.history.append({
+            "player": player,
+            "move": move
+        })
+
+        apply_move(self.board, move)
+
+        # Alterna o jogador
+        self.current_player = (
+            Board.BLACK
+            if player == Board.WHITE
+            else Board.WHITE
+        )
+
+        # Registra a nova posição
+        self._register_position()
+
+        # Verifica empate por repetição
+        position = self._get_position_key()
+
+        if self.position_counts[position] >= 3:
+            self.status = "draw"
+            self.draw_reason = "threefold_repetition"
+            return
+
+        # Verifica se a partida terminou
+        self._check_game_over()
+
+    def _get_position_key(self):
+        """
+        Identifica uma posição considerando o tabuleiro
+        e o jogador que deve jogar.
+        """
+
+        board_state = tuple(
+            piece
+            for row in self.board.grid
+            for piece in row
+        )
+
+        return (board_state, self.current_player)
+
+    def _register_position(self):
+        position = self._get_position_key()
+
+        self.position_counts[position] = (
+            self.position_counts.get(position, 0) + 1
+        )
+
+    def _check_game_over(self):
+        """
+        Se o jogador atual não possui movimentos legais,
+        o adversário vence.
+        """
+
+        if self.status != "ongoing":
+            return
+
+        legal_moves = get_legal_moves(
+            self.board,
+            self.current_player
+        )
+
+        if not legal_moves:
+            self.status = "finished"
+            self.winner = (
+                Board.BLACK
+                if self.current_player == Board.WHITE
+                else Board.WHITE
+            )
+
+    def is_over(self):
+        return self.status != "ongoing"
+
+    def get_result(self):
+        if self.status == "draw":
+            return {
+                "status": "draw",
+                "winner": None,
+                "reason": self.draw_reason
+            }
+
+        if self.status == "finished":
+            return {
+                "status": "finished",
+                "winner": self.winner,
+                "reason": "no_legal_moves"
+            }
+
+        return {
+            "status": "ongoing",
+            "winner": None,
+            "reason": None
+        }
+
+    def print_game(self):
+        self.board.print_board()
+
+        if self.current_player == Board.WHITE:
+            print("\nVez das brancas")
+        else:
+            print("\nVez das pretas")
+
+        print(f"Status: {self.status}")
