@@ -3,7 +3,9 @@ from src.game.rules import (
     get_simple_moves,
     get_capture_moves,
     get_multiple_capture_moves,
-    get_legal_moves
+    get_legal_moves,
+    get_king_simple_moves,
+    get_king_capture_sequences
 )
 
 def test_initial_white_moves():
@@ -13,14 +15,12 @@ def test_initial_white_moves():
 
     assert len(moves) == 7
 
-
 def test_initial_black_moves():
     board = Board()
 
     moves = get_simple_moves(board, Board.BLACK)
 
     assert len(moves) == 7
-
 
 def test_white_moves_forward():
     board = Board()
@@ -32,7 +32,6 @@ def test_white_moves_forward():
         destination_row = move["to"][0]
 
         assert destination_row < origin_row
-
 
 def test_black_moves_forward():
     board = Board()
@@ -66,7 +65,6 @@ def test_white_capture():
     assert moves[0]["to"] == (3, 4)
     assert moves[0]["capture"] == (4, 3)
 
-
 def test_black_capture():
     board = Board()
 
@@ -85,7 +83,6 @@ def test_black_capture():
     assert moves[0]["from"] == (2, 3)
     assert moves[0]["to"] == (4, 5)
     assert moves[0]["capture"] == (3, 4)
-
 
 def test_capture_requires_empty_destination():
     board = Board()
@@ -184,3 +181,76 @@ def test_simple_moves_when_no_capture_exists():
 
     for move in moves:
         assert "capture" not in move
+
+def test_king_can_move_multiple_squares():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(4, 3, Board.WHITE_KING)
+
+    moves = get_king_simple_moves(
+        board, 4, 3, Board.WHITE
+    )
+
+    assert len(moves) == 13
+    assert any(move["to"] == (0, 7) for move in moves)
+    assert any(move["to"] == (7, 0) for move in moves)
+
+def test_king_can_capture_at_distance():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(5, 0, Board.WHITE_KING)
+    board.set_piece(3, 2, Board.BLACK)
+
+    sequences = get_king_capture_sequences(
+        board, 5, 0, Board.WHITE
+    )
+
+    assert len(sequences) == 3
+
+    for sequence in sequences:
+        assert len(sequence) == 1
+        assert sequence[0]["capture"] == (3, 2)
+
+def test_king_cannot_capture_own_piece():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(5, 0, Board.WHITE_KING)
+    board.set_piece(3, 2, Board.WHITE)
+
+    sequences = get_king_capture_sequences(
+        board, 5, 0, Board.WHITE
+    )
+
+    assert sequences == []
+
+def test_king_capture_is_mandatory():
+    board = Board()
+    board.grid = [
+        [Board.EMPTY for _ in range(8)]
+        for _ in range(8)
+    ]
+
+    board.set_piece(5, 0, Board.WHITE_KING)
+    board.set_piece(3, 2, Board.BLACK)
+
+    board.set_piece(5, 6, Board.WHITE)
+
+    moves = get_legal_moves(board, Board.WHITE)
+
+    assert len(moves) == 3
+
+    for sequence in moves:
+        assert len(sequence) == 1
+        assert "capture" in sequence[0]

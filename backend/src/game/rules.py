@@ -198,37 +198,174 @@ def get_multiple_capture_moves(board, row, col, player):
     return sequences
 
 
-
 def get_legal_moves(board, player):
     capture_sequences = []
 
-    # Procura capturas para todas as peças do jogador
+    # Primeiro, procura capturas de todas as peças
     for row in range(Board.SIZE):
         for col in range(Board.SIZE):
             piece = board.get_piece(row, col)
 
-            if piece != player:
+            if piece * player <= 0:
                 continue
 
-            sequences = get_multiple_capture_moves(
-                board, row, col, player
-            )
+            if abs(piece) == 2:
+                sequences = get_king_capture_sequences(
+                    board, row, col, player
+                )
+            else:
+                sequences = get_multiple_capture_moves(
+                    board, row, col, player
+                )
 
             capture_sequences.extend(sequences)
 
-    # Se existem capturas, elas são obrigatórias
+    # Captura é obrigatória
     if capture_sequences:
         max_captures = max(
             len(sequence) for sequence in capture_sequences
         )
 
-        # Retorna somente as sequências que capturam
-        # o maior número de peças
         return [
             sequence
             for sequence in capture_sequences
             if len(sequence) == max_captures
         ]
 
-    # Se não existem capturas, permite movimentos simples
-    return get_simple_moves(board, player)
+    # Sem capturas, procura movimentos simples
+    simple_moves = get_simple_moves(board, player)
+
+    for row in range(Board.SIZE):
+        for col in range(Board.SIZE):
+            piece = board.get_piece(row, col)
+
+            if piece == player * 2:
+                simple_moves.extend(
+                    get_king_simple_moves(
+                        board, row, col, player
+                    )
+                )
+
+    return simple_moves
+
+
+def get_king_simple_moves(board, row, col, player):
+    moves = []
+
+    directions = [
+        (-1, -1),
+        (-1, 1),
+        (1, -1),
+        (1, 1)
+    ]
+
+    for dr, dc in directions:
+        current_row = row + dr
+        current_col = col + dc
+
+        while (
+            0 <= current_row < Board.SIZE
+            and 0 <= current_col < Board.SIZE
+        ):
+            piece = board.get_piece(current_row, current_col)
+
+            # Se encontrar outra peça, encerra essa diagonal
+            if piece != Board.EMPTY:
+                break
+
+            moves.append({
+                "from": (row, col),
+                "to": (current_row, current_col)
+            })
+
+            current_row += dr
+            current_col += dc
+
+    return moves
+
+
+def get_king_capture_sequences(board, row, col, player):
+    piece = board.get_piece(row, col)
+
+    if abs(piece) != 2 or piece * player <= 0:
+        return []
+
+    directions = [
+        (-1, -1),
+        (-1, 1),
+        (1, -1),
+        (1, 1)
+    ]
+
+    sequences = []
+
+    def explore(current_row, current_col, path):
+        found_capture = False
+
+        for dr, dc in directions:
+            scan_row = current_row + dr
+            scan_col = current_col + dc
+
+            # Procura a primeira peça na diagonal
+            while (
+                0 <= scan_row < Board.SIZE
+                and 0 <= scan_col < Board.SIZE
+                and board.get_piece(scan_row, scan_col) == Board.EMPTY
+            ):
+                scan_row += dr
+                scan_col += dc
+
+            if not (
+                0 <= scan_row < Board.SIZE
+                and 0 <= scan_col < Board.SIZE
+            ):
+                continue
+
+            middle_piece = board.get_piece(scan_row, scan_col)
+
+            # Não pode capturar uma peça própria
+            if middle_piece * player >= 0:
+                continue
+
+            # Procura todas as casas vazias depois da adversária
+            destination_row = scan_row + dr
+            destination_col = scan_col + dc
+
+            while (
+                0 <= destination_row < Board.SIZE
+                and 0 <= destination_col < Board.SIZE
+                and board.get_piece(destination_row, destination_col) == Board.EMPTY
+            ):
+                found_capture = True
+
+                move = {
+                    "from": (current_row, current_col),
+                    "to": (destination_row, destination_col),
+                    "capture": (scan_row, scan_col)
+                }
+
+                # Simula a captura
+                board.set_piece(current_row, current_col, Board.EMPTY)
+                board.set_piece(scan_row, scan_col, Board.EMPTY)
+                board.set_piece(destination_row, destination_col, piece)
+
+                explore(
+                    destination_row,
+                    destination_col,
+                    path + [move]
+                )
+
+                # Restaura o tabuleiro
+                board.set_piece(destination_row, destination_col, Board.EMPTY)
+                board.set_piece(scan_row, scan_col, middle_piece)
+                board.set_piece(current_row, current_col, piece)
+
+                destination_row += dr
+                destination_col += dc
+
+        if not found_capture and path:
+            sequences.append(path)
+
+    explore(row, col, [])
+
+    return sequences
