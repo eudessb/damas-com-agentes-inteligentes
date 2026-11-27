@@ -121,6 +121,11 @@ def get_capture_moves(board, player):
     return moves
 
 def get_multiple_capture_moves(board, row, col, player):
+    piece = board.get_piece(row, col)
+
+    if piece != player:
+        return []
+
     directions = [
         (-1, -1),
         (-1, 1),
@@ -128,36 +133,66 @@ def get_multiple_capture_moves(board, row, col, player):
         (1, 1)
     ]
 
-    moves = []
+    sequences = []
 
-    for dr, dc in directions:
-        middle_row = row + dr
-        middle_col = col + dc
+    def explore(current_row, current_col, path):
+        found_capture = False
 
-        destination_row = row + 2 * dr
-        destination_col = col + 2 * dc
+        for dr, dc in directions:
+            middle_row = current_row + dr
+            middle_col = current_col + dc
 
-        # Verifica se as posições estão dentro do tabuleiro
-        if not (
-            0 <= middle_row < Board.SIZE
-            and 0 <= middle_col < Board.SIZE
-            and 0 <= destination_row < Board.SIZE
-            and 0 <= destination_col < Board.SIZE
-        ):
-            continue
+            destination_row = current_row + 2 * dr
+            destination_col = current_col + 2 * dc
 
-        middle_piece = board.get_piece(middle_row, middle_col)
-        destination_piece = board.get_piece(
-            destination_row, destination_col
-        )
+            if not (
+                0 <= middle_row < Board.SIZE
+                and 0 <= middle_col < Board.SIZE
+                and 0 <= destination_row < Board.SIZE
+                and 0 <= destination_col < Board.SIZE
+            ):
+                continue
 
-        # Verifica se existe uma peça adversária
-        # e se a casa de destino está vazia
-        if middle_piece * player < 0 and destination_piece == Board.EMPTY:
-            moves.append({
-                "from": (row, col),
+            middle_piece = board.get_piece(middle_row, middle_col)
+            destination_piece = board.get_piece(
+                destination_row, destination_col
+            )
+
+            if middle_piece * player >= 0:
+                continue
+
+            if destination_piece != Board.EMPTY:
+                continue
+
+            found_capture = True
+
+            move = {
+                "from": (current_row, current_col),
                 "to": (destination_row, destination_col),
                 "capture": (middle_row, middle_col)
-            })
+            }
 
-    return moves
+            # Simula a captura
+            board.set_piece(current_row, current_col, Board.EMPTY)
+            board.set_piece(middle_row, middle_col, Board.EMPTY)
+            board.set_piece(destination_row, destination_col, piece)
+
+            # Procura capturas a partir da nova posição
+            explore(
+                destination_row,
+                destination_col,
+                path + [move]
+            )
+
+            # Desfaz a captura para explorar outros caminhos
+            board.set_piece(destination_row, destination_col, Board.EMPTY)
+            board.set_piece(middle_row, middle_col, middle_piece)
+            board.set_piece(current_row, current_col, piece)
+
+        # Se não encontrou outra captura, terminou a sequência
+        if not found_capture and path:
+            sequences.append(path)
+
+    explore(row, col, [])
+
+    return sequences

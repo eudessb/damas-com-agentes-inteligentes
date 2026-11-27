@@ -102,37 +102,28 @@ def test_capture_requires_empty_destination():
 
     assert len(moves) == 0
 
-def test_multiple_capture_has_next_move():
+def test_multiple_capture_sequence():
     board = Board()
     board.grid = [
         [Board.EMPTY for _ in range(8)]
         for _ in range(8)
     ]
 
-    # Peça branca
     board.set_piece(5, 0, Board.WHITE)
-
-    # Duas peças pretas em sequência
     board.set_piece(4, 1, Board.BLACK)
     board.set_piece(2, 3, Board.BLACK)
 
-    # Primeira captura: (5,0) -> (3,2)
-    first_capture = get_multiple_capture_moves(
+    sequences = get_multiple_capture_moves(
         board, 5, 0, Board.WHITE
     )
 
-    assert len(first_capture) == 1
-    assert first_capture[0]["to"] == (3, 2)
+    assert len(sequences) == 1
+    assert len(sequences[0]) == 2
 
-    # Simula a primeira captura
-    board.set_piece(5, 0, Board.EMPTY)
-    board.set_piece(4, 1, Board.EMPTY)
-    board.set_piece(3, 2, Board.WHITE)
+    assert sequences[0][0]["to"] == (3, 2)
+    assert sequences[0][1]["to"] == (1, 4)
 
-    # Verifica se existe uma segunda captura
-    second_capture = get_multiple_capture_moves(
-        board, 3, 2, Board.WHITE
-    )
-
-    assert len(second_capture) == 1
-    assert second_capture[0]["to"] == (1, 4)
+    # A função deve preservar o tabuleiro original
+    assert board.get_piece(5, 0) == Board.WHITE
+    assert board.get_piece(4, 1) == Board.BLACK
+    assert board.get_piece(2, 3) == Board.BLACK
