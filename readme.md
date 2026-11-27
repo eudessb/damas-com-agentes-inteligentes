@@ -16,15 +16,14 @@ Agente de IA que joga **Damas (regras brasileiras)** contra um humano ou contra 
 Requer **Python 3.9+** e pytest.
 ```bash
 # Rodar no terminal
-python3 -m pytest -v #na pasta backend/
-python3 -m src.game.game #executar na pasta backend/
+python3 -m pytest -v #executar na pasta backend/
+python3 test_match.py #executar na pasta backend/
 ```
 ## Estrutura do repositório
 
 ```
 frontend/
 backend/
-agents/
 benchmark/
 LICENSE
 readme.md
