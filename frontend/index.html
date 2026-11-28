@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Damas com Agentes Inteligentes</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Damas com Agentes Inteligentes</h1>
+        <p>Jogue contra diferentes algoritmos de inteligência artificial.</p>
+    </header>
+
+    <main>
+
+        <section class="game-info">
+            <h2>Nova partida</h2>
+
+            <label for="agent">Escolha seu adversário:</label>
+
+            <select id="agent">
+                <option value="random">Random Agent</option>
+                <option value="greedy">Greedy Agent</option>
+                <option value="minimax">Minimax</option>
+                <option value="mcts">MCTS</option>
+            </select>
+
+            <button id="new-game">Nova partida</button>
+
+            <p id="game-status">Sua vez: brancas</p>
+        </section>
+
+        <section class="board-container">
+            <div id="board"></div>
+        </section>
+
+    </main>
+
+    <script src="js/game.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #222;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 30px 15px;
+}
+
+header h1 {
+    margin-bottom: 10px;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    padding: 30px;
+    flex-wrap: wrap;
+}
+
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 220px;
+}
+
+select, button {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+button {
+    background: #315c43;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #244632;
+}
+
+.board-container {
+    width: min(80vw, 560px);
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    aspect-ratio: 1;
+    border: 5px solid #513b2d;
+}
+
+.square {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1;
+}
+
+.light {
+    background: #f0d9b5;
+}
+
+.dark {
+    background: #8b5a3c;
+}
+
+.piece {
+    width: 75%;
+    height: 75%;
+    border-radius: 50%;
+    border: 3px solid rgba(0, 0, 0, 0.25);
+}
+
+.white-piece {
+    background: #fff;
+}
+
+.black-piece {
+    background: #222;
+}
